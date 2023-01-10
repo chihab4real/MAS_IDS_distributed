@@ -107,6 +107,8 @@ public class ManagerAgent extends Agent  {
                         dest = new AID("AnalysorAgent_Container"+cid, AID.ISLOCALNAME);
                         msg.addReceiver(dest);
                         System.out.println("send");
+
+
                         send(msg);
 
                         Message messageListe;
