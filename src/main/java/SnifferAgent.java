@@ -10,6 +10,7 @@ import weka.core.Instances;
 import weka.core.converters.ConverterUtils.*;
 
 import java.util.Random;
+import java.util.Timer;
 
 
 public class SnifferAgent extends Agent {
@@ -21,52 +22,51 @@ public class SnifferAgent extends Agent {
 
 
 
+        Instances test = null;
 
-
-
-
-        Instances TestData = null;
         try {
-           TestData = new DataSource("KDDTest.arff").getDataSet();
+            test = new DataSource("KDDTest.arff").getDataSet();
+            test.setClassIndex(test.numAttributes()-1);
+
+
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
         String containerID = getMyID(getAID().getLocalName());
 
-        /*
 
-        ACLMessage msg = new ACLMessage( ACLMessage.INFORM );
-        msg.setContent("SNF"+containerID+"Ready");
-        AID dest = null;
-        dest = new AID("SubManagerAgent_Container"+containerID,AID.ISLOCALNAME);
-        msg.addReceiver(dest);
-        send(msg);
 
-        Message messageListe;
-        messageListe = new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+containerID,msg.getContent());
-        ManagerAgent.addMessage(messageListe);*/
 
-        addBehaviour(new OneShotBehaviour() {
+
+
+
+
+
+        Instances finalTest = test;
+        addBehaviour(new TickerBehaviour(this,new Random().nextInt((900 - 100) + 1) + 100) {
             @Override
-            public void action() {
-                try {
-                    AgentController agentController = null;
-                    agentController = getContainerController().createNewAgent("AnalysorAgent_Container"+containerID,"AnalysorAgent",null);
+            protected void onTick() {
+
+                PacketSniffer packetSniffer = new PacketSniffer(finalTest.get(new Random().nextInt(finalTest.size()-1)),false);
 
 
-                    agentController.start();
-                } catch (StaleProxyException e) {
-                    e.printStackTrace();
-                }
+
+
+                ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getPacketsDetected().add(packetSniffer);
+                ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getAll().add(packetSniffer);
+
+
+
+                reset(new Random().nextInt((900 - 100) + 1) + 100);
             }
         });
 
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
+
                 ACLMessage message = receive();
                 if(message!=null){
                     if(message.getContent().equals("Check")){
@@ -77,8 +77,9 @@ public class SnifferAgent extends Agent {
                         msg.addReceiver(dest);
                         send(msg);
                         try {
-                            ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()));
-                            //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()),0);
+                            PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                            Thread.sleep(ManagerAgent.treating_time);
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -93,7 +94,6 @@ public class SnifferAgent extends Agent {
 
 
 
-        addBehaviour(new BehSniff(this,Integer.parseInt(containerID)-1));
 
         /*addBehaviour(new TickerBehaviour(this, 5000) {
             @Override

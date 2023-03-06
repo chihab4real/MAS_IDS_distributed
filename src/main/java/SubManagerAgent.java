@@ -28,8 +28,8 @@ public class SubManagerAgent extends Agent {
 
                 AgentController agentController = null;
                 try {
-                    agentController = getAgent().getContainerController().createNewAgent("SnifferAgent_Container"+containerID,"SnifferAgent",null);
-                    ManagerAgent.containers.get(Integer.parseInt(containerID)-1).setSnifferAID("SnifferAgent_Container"+containerID);
+                    agentController = getAgent().getContainerController().createNewAgent("AnalysorAgent_Container"+containerID,"AnalysorAgent",null);
+                    ManagerAgent.containers.get(Integer.parseInt(containerID)-1).setSnifferAID("AnalysorAgent_Container"+containerID);
                     agentController.start();
                 } catch (StaleProxyException e) {
                     e.printStackTrace();
@@ -155,7 +155,8 @@ public class SubManagerAgent extends Agent {
                                     e.printStackTrace();
                                 }
                                 try {
-                                    ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                                    PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                                    Thread.sleep(ManagerAgent.treating_time);
                                     //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+String.valueOf(containerID),msg.getContent()),0);
                                 } catch (Exception e) {
                                     e.printStackTrace();
@@ -191,7 +192,8 @@ public class SubManagerAgent extends Agent {
                                     e.printStackTrace();
                                 }
                                 try {
-                                    ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"SnifferAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                                    PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"SnifferAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                                    Thread.sleep(ManagerAgent.treating_time);
                                     //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"SnifferAgent_Container"+String.valueOf(containerID),msg.getContent()),0);
                                 } catch (Exception e) {
                                     e.printStackTrace();

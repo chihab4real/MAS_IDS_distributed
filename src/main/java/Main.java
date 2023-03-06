@@ -1,3 +1,4 @@
+import com.mongodb.*;
 import jade.core.Profile;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
@@ -17,11 +18,13 @@ public class Main {
 
 
     static int index1=0;
+    static String code = "_"+ManagerAgent.treating_time +"_"+ManagerAgent.numberOfContainers;
+
 
     public static void main(String[] args) {
 
 
-        int time_ex=30;
+        int time_ex=300;
 
         Timer timer = new Timer();
 
@@ -33,7 +36,7 @@ public class Main {
 
 
 
-                    System.out.println("\n\n\nArchitecture Distrubiée\nTemps d'exuction: "+time_ex+" seconcds");
+                    /*System.out.println("\n\n\nArchitecture Distrubiée\nTemps d'exuction: "+time_ex+" seconcds");
                             ArrayList<Integer> arrayList = howMuchNormal();
                             int x = arrayList.get(0)+arrayList.get(1);
                             System.out.println("Packets Detecters: "+x);
@@ -42,7 +45,7 @@ public class Main {
 
 
                     System.out.println("Normal: "+arrayList.get(0)+"\t("+(arrayList.get(0)*100/(arrayList.get(0)+arrayList.get(1)))+")%");
-                            System.out.println("Anomaly: "+arrayList.get(1)+"\t("+(arrayList.get(1)*100/(arrayList.get(0)+arrayList.get(1)))+")%");
+                            System.out.println("Anomaly: "+arrayList.get(1)+"\t("+(arrayList.get(1)*100/(arrayList.get(0)+arrayList.get(1)))+")%");*/
 
                     try {
                         PlatformPara.containerController.getPlatformController().kill();
@@ -51,14 +54,21 @@ public class Main {
                     }
 
 
+                    System.out.println("END");
+
                     try {
-                        getSummary();
-                        System.exit(0);
+                        sendPackettoDB();
+                        sendMessagestoDB();
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                     //System.exit(-1);
+
+                    System.exit(0);
+
+
 
 
 
@@ -102,22 +112,6 @@ public class Main {
 
 
 
-            /*
-            Timer timer = new Timer();
-        AgentController finalAgentController = agentController;
-        timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-
-                    ACLMessage msg = ManagerAgent.aclMessages.get(0);
-
-                    for(int i=1;i<ManagerAgent.aclMessages.size();i++){
-                        System.out.println("MessageID"+i+":\nSender:"+msg.getSender()+"\n-Receivers:"+msg.getAllReceiver()+"\nContent:"+msg.getContent()+"\n");
-                    }
-                }
-            },15000);
-
-*/
 
 
 
@@ -128,135 +122,47 @@ public class Main {
 
 
 
-    public static String meth(){
-
-        //String x="GA:N_1,SS_A,SSN_A,SA_A,NP_120,NA_60|"+"N_2,SS_A,SSN_A,SA_A,NP_130,NA_60|";
-        String message ="GA:";
 
 
+    public static void sendPackettoDB()throws Exception{
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
+        DB database = mongoClient.getDB("PacketsDistri");
+
+        DBCollection collection = database.getCollection("PacketsDetected"+code);
+
+        int number=0;
+        int number2=0;
 
 
-        for(int i=0;i<ManagerAgent.containers.size();i++){
-            MessageContainer messageContainer = ManagerAgent.containers.get(i).getThemAll();
-            message+=messageContainer.toSend()+"|";
-        }
+        for(Container container:ManagerAgent.containers){
+            number+=container.getAll().size();
+            number2+=container.getPacketClassified().size();
 
-        return message;
-    }
-
-    public static  String getMessages(){
-
-        String x = "GM:";
-
-        for(int i=0;i<ManagerAgent.messages.size();i++){
-            Message message = ManagerAgent.messages.get(i);
-            Message2 message2 = new Message2();
-            message2.setSender(message.getSender());
-            message2.setReciever(message.getReciever());
-            message2.setContent(message.getContent());
-            message2.setTime(""+message.getTime().getHour()+":"+message.getTime().getMinute()+":"+message.getTime().getSecond());
-            String word=message2.getSender()+","+message2.getReciever()+","+message2.getContent()+","+message2.getTime()+",";
-
-            x+=word+"|";
-
-        }
-
-        return x;
-    }
-
-    public static ArrayList<Integer> howMuchNormal(){
-
-
-        ArrayList<Integer> arrayList1 = new ArrayList<>();
-        arrayList1.add(0);
-        arrayList1.add(0);
-        for(int i=0;i<ManagerAgent.containers.size();i++){
-            ArrayList<PacketDetected> arrayList = ManagerAgent.containers.get(i).getPacketClassified();
-
-            for(int j=0;j<arrayList.size();j++){
-                if(arrayList.get(j).getCategory().equals("Normal")){
-                    arrayList1.set(0,arrayList1.get(0)+1);
-                }else{
-                    arrayList1.set(1,arrayList1.get(1)+1);
-                }
+            for(PacketDetected p: container.getPacketClassified()){
+                DBObject dbObject = p.toDBObject();
+                collection.insert(dbObject);
             }
         }
 
+        System.out.println(number+"\n"+number2);
 
 
-        return arrayList1;
     }
 
-    public static ArrayList<Integer> howMuchNormal2(Container container){
+    public static void sendMessagestoDB()throws Exception{
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
+        DB database = mongoClient.getDB("PacketsDistri");
+
+        DBCollection collection = database.getCollection("Messages"+code);
+
+        System.out.println(PlatformPara.messages.size()+"\n");
 
 
-        ArrayList<Integer> arrayList1 = new ArrayList<>();
-        arrayList1.add(0);
-        arrayList1.add(0);
+        for(Message message:PlatformPara.messages){
 
-        for(int i=0;i<container.getPacketClassified().size();i++){
-            if(container.getPacketClassified().get(i).getCategory().equals("Normal")){
-                arrayList1.set(0,arrayList1.get(0)+1);
-            }else{
-                arrayList1.set(1,arrayList1.get(1)+1);
-            }
+            DBObject dbObject = message.toDBObject();
+            collection.insert(dbObject);
         }
-
-
-        return arrayList1;
-    }
-
-
-
-
-    public static void getSummary() throws Exception{
-        String fileName="C:\\Users\\pc\\Desktop\\IDSData+type\\Messages"+PlatformPara.startTime+".txt";
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-
-        String time_work="Started: "+PlatformPara.startTime+"\nEnded: "+dtf.format(LocalDateTime.now());
-        String container="Number of containers: "+ManagerAgent.containers.size();
-        String details_of_containers="";
-
-        for(int i=0;i<ManagerAgent.containers.size();i++){
-            String de="Container "+i+": ";
-            ArrayList<Integer> arrayList = howMuchNormal2(ManagerAgent.containers.get(i));
-            int x= arrayList.get(0)+arrayList.get(1);
-            de+="\nTotale packets: "+(x);
-            de+="\nNormal: "+arrayList.get(0)+" ("+(arrayList.get(0)*100/x)+"%)";
-            de+="\nAnomalie: "+arrayList.get(1)+" ("+(arrayList.get(1)*100/x)+"%)";
-
-            details_of_containers+="\n"+de+"\n--------------------------------------";
-
-        }
-
-        String str = "\n"+time_work+"\n"+container+"\n"+details_of_containers;
-
-
-
-        try {
-
-            File myObj = new File(fileName);
-            if (myObj.createNewFile()) {
-                //System.out.println("File created: " + myObj.getName());
-            } else {
-                //System.out.println("File already exists.");
-            }
-
-            FileWriter fileWritter = new FileWriter(fileName,true);
-            BufferedWriter bw = new BufferedWriter(fileWritter);
-            bw.write("\n"+str);
-            bw.close();
-
-            //System.out.println("Successfully wrote to the file.");
-
-
-        } catch (IOException e) {
-            //System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-
-
 
 
     }

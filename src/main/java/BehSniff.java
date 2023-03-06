@@ -68,7 +68,9 @@ public class BehSniff extends TickerBehaviour {
         ManagerAgent.containers.get(index).getAll().add(packetSniffer);
 
 
-        ManagerAgent.containers.get(index).setRandomNumber(new Random().nextInt(1000));
+        ManagerAgent.containers.get(index).setRandomNumber(100000);
+
+
 
 
 

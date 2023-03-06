@@ -37,7 +37,7 @@ public class Container {
         this.stateAnalysor="Actif";
         this.informed=false;
         this.agentInformer=false;
-        this.randomNumber = new Random().nextInt(1000);
+        this.randomNumber = 5000;
 
         count++;
     }

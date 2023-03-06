@@ -59,8 +59,9 @@ public class ClassifAgent extends Agent {
                         msg.addReceiver(dest);
                         send(msg);
                         try {
-                            ManagerAgent.addMessage((new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent())));
-                            //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent()),0);
+                            PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent()));
+                            Thread.sleep(ManagerAgent.treating_time);
+
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -88,7 +89,8 @@ public class ClassifAgent extends Agent {
                                 msg.addReceiver(dest);
                                 send(msg);
                                 try {
-                                    ManagerAgent.addMessage((new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent())));
+                                    PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent()));
+                                    Thread.sleep(ManagerAgent.treating_time);
                                     //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"AnalysorAgent_Container"+(i+1),msg.getContent()),0);
                                 } catch (Exception e) {
                                     e.printStackTrace();
@@ -246,7 +248,8 @@ public class ClassifAgent extends Agent {
             send(msg);
 
             try {
-                ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()));
+                PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()));
+                Thread.sleep(ManagerAgent.treating_time);
                 //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()),0);
             } catch (Exception e) {
                 e.printStackTrace();

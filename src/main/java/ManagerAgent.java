@@ -8,24 +8,27 @@ import java.util.ArrayList;
 
 public class ManagerAgent extends Agent  {
     public static int analysornumber = 1;
-    public static ArrayList<Message> messages;
+
     public static ArrayList<Container> containers=new ArrayList<>();
     public static ArrayList<PacketSolved> packetSolveds=new ArrayList<>();
     public static int classREady=0;
     public static boolean needToUpadte=false;
     public static boolean end=false;
 
+    public static int numberOfContainers =100;
+    public static int treating_time =1000;
+
 
     @Override
     protected void setup() {
-        messages = new ArrayList<>();
+
 
         //System.out.println("I'm Manager Agent");
 
 
 
 
-        addBehaviour(new TickerBehaviour(this,600000) {
+        addBehaviour(new TickerBehaviour(this,90000) {
             //behaviour: sending a check message every specific time
             @Override
             protected void onTick() {
@@ -45,12 +48,19 @@ public class ManagerAgent extends Agent  {
                         }
 
                         try {
-                            //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+(i+1),msg.getContent()),0);
-                            ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+(i+1),msg.getContent()));
+
+                            PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+(i+1),msg.getContent()));
+
                         } catch (Exception e) {
 
                             e.printStackTrace();
                         }
+                    }
+
+                    try {
+                        Thread.sleep(ManagerAgent.treating_time);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
 
                     //iniz();
@@ -76,7 +86,8 @@ public class ManagerAgent extends Agent  {
                     msg.addReceiver(dest);
                     send(msg);
                     try {
-                        ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"ClassifAgent",msg.getContent()));
+                        PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"ClassifAgent",msg.getContent()));
+                        Thread.sleep(ManagerAgent.treating_time);
                         //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()),0);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -98,6 +109,11 @@ public class ManagerAgent extends Agent  {
                         //receiving message: that a container reached 50 anomaly packets
                         String cid = message.getContent().replace("Check50_A","");
                         updateNetworkState();
+                        try {
+                            Thread.sleep(ManagerAgent.treating_time);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         int state = CheckNetworkState();
 
 
@@ -113,7 +129,12 @@ public class ManagerAgent extends Agent  {
 
                         Message messageListe;
                         messageListe = new Message(msg.getSender().getLocalName(), "AnalysorAgent_Container"+cid, msg.getContent());
-                        ManagerAgent.addMessage(messageListe);
+                        PlatformPara.messages.add(messageListe);
+                        try {
+                            Thread.sleep(ManagerAgent.treating_time);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
                         block();
 
@@ -127,19 +148,7 @@ public class ManagerAgent extends Agent  {
 
     }
 
-    public static void addMessage(Message message){
-        messages.add(message);
 
-        try {
-            PlatformPara.NotifyMessages(message,messages.size()-1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-
-
-    }
 
 
     public void updateNetworkState(){
@@ -153,7 +162,7 @@ public class ManagerAgent extends Agent  {
 
             Message messageListe;
             messageListe = new Message(msg.getSender().getLocalName(), "AnalysorAgent_Container"+String.valueOf(i+1), msg.getContent());
-            ManagerAgent.addMessage(messageListe);
+            PlatformPara.messages.add(messageListe);
         }
     }
 

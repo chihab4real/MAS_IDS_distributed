@@ -2,7 +2,10 @@ import com.mongodb.*;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.wrapper.AgentController;
+import jade.wrapper.StaleProxyException;
 import weka.core.Instance;
 
 import java.util.ArrayList;
@@ -32,18 +35,23 @@ public class AnalysorAgent extends Agent {
 
         String containerID = getMyID(getAID().getLocalName());
 
-        /*
 
-        ACLMessage msg = new ACLMessage( ACLMessage.INFORM );
-        msg.setContent("AAC"+containerID+"Ready");
-        AID dest = null;
-        dest = new AID("SnifferAgent_Container"+containerID,AID.ISLOCALNAME);
-        msg.addReceiver(dest);
-        send(msg);
+        addBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                try {
+                    AgentController agentController = null;
+                    agentController = getContainerController().createNewAgent("SnifferAgent_Container"+containerID,"SnifferAgent",null);
 
-        Message messageListe;
-        messageListe = new Message(msg.getSender().getLocalName(),"SnifferAgent_Container"+containerID,msg.getContent());
-        ManagerAgent.addMessage(messageListe);*/
+
+                    agentController.start();
+                } catch (StaleProxyException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
 
         addBehaviour(new CyclicBehaviour() {
             @Override
@@ -67,7 +75,9 @@ public class AnalysorAgent extends Agent {
                         msg.addReceiver(dest);
                         send(msg);
                         try {
-                            ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()));
+                            PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()));
+
+
                             //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"SubManagerAgent_Container"+String.valueOf(containerID),msg.getContent()),0);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -77,7 +87,7 @@ public class AnalysorAgent extends Agent {
 
 
 
-                if(ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getPacketClassified().size()>=5 && !ManagerAgent.containers.get(Integer.parseInt(containerID)-1).isInformed()) {
+                if(ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getPacketClassified().size()==50 && !ManagerAgent.containers.get(Integer.parseInt(containerID)-1).isInformed()) {
                     if(!ManagerAgent.containers.get(Integer.parseInt(containerID)-1).isAgentInformer()){
                         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                         msg.setContent("Check50_A" + containerID);
@@ -86,7 +96,8 @@ public class AnalysorAgent extends Agent {
                         msg.addReceiver(dest);
                         send(msg);
                         try {
-                            ManagerAgent.addMessage(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()));
+                            PlatformPara.messages.add(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()));
+                            //Thread.sleep(ManagerAgent.treating_time);
                             //PlatformPara.NotifyMessages(new Message(msg.getSender().getLocalName(),"ManagerAgent",msg.getContent()),0);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -98,7 +109,12 @@ public class AnalysorAgent extends Agent {
 
                         Message messageListe;
                         messageListe = new Message(msg.getSender().getLocalName(), "ManagerAgent", msg.getContent());
-                        ManagerAgent.addMessage(messageListe);
+                        PlatformPara.messages.add(messageListe);
+                        try {
+                            Thread.sleep(0);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
                         ManagerAgent.containers.get(Integer.parseInt(containerID)-1).setAgentInformer(true);
 
@@ -117,9 +133,10 @@ public class AnalysorAgent extends Agent {
 
 
                         }
-                        block();
+                        block(ManagerAgent.treating_time);
                     }
                 }
+
                 if(!ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getPacketsDetected().isEmpty()){
 
                     PacketSniffer packetSniffer = ManagerAgent.containers.get(Integer.parseInt(containerID)-1).getPacketsDetected().get(0);
@@ -135,9 +152,19 @@ public class AnalysorAgent extends Agent {
 
 
 
+                        Thread.sleep(ManagerAgent.treating_time);
+
+
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
+
+
+
+
+
                 }
             }
         });
@@ -268,6 +295,8 @@ public class AnalysorAgent extends Agent {
     }
 
     public static void sendPackettoDB(PacketDetected packetDetected, String printed)throws Exception{
+
+        /*
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
         DB database = mongoClient.getDB("Test");
 
@@ -276,22 +305,14 @@ public class AnalysorAgent extends Agent {
 
         DBObject dbObject = packetDetected.toDBObject();
 
-        /*List<Integer> books = Arrays.asList(27464, 747854);
 
-        DBObject person = new BasicDBObject("_id", "jo")
-                .append("name", "Jo Bloggs")
-                .append("address", new BasicDBObject("street", "123 Fake St")
-                        .append("city", "Faketon")
-                        .append("state", "MA")
-                        .append("zip", 12345))
-                .append("books", books);*/
 
         collection.insert(dbObject);
 
         printed+="\nPacket Detectd and saved as  "+dbObject.get("class");
         //System.out.println("Packet Detectd and saved as  "+dbObject.get("class"));
 
-        System.out.println(printed+"\n------------------------------------------------");
+        System.out.println(printed+"\n------------------------------------------------");*/
 
 
     }

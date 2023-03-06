@@ -24,10 +24,12 @@ public class PlatformPara {
     public static ArrayList<Boolean> alive= new ArrayList<>();
     public static String startTime;
     public static String startTime2;
+    public static ArrayList<Message> messages = new ArrayList<>();
 
 
     public static void NotifyMessages(Message message,int index) throws Exception{
-        String fileName="C:\\Users\\pc\\Desktop\\IDSData+type\\Messages"+startTime+".txt";
+
+        String fileName="C:\\Users\\pc\\Desktop\\3IDS_TEST\\D\\Messages"+startTime+".txt";
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         //DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         String str = "-----------Message: "+index+" -----------"+"\nSender-: "+message.getSender()+"\nReciever-:"+message.getReciever()+
@@ -61,36 +63,6 @@ public class PlatformPara {
 
     }
 
-    /*public static void Print(String output){
-        System.out.println(output);
-        String fileName="C:\\Users\\pc\\Desktop\\IDSData+type\\Log"+startTime+".txt";
-
-        //DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-
-
-        try {
-
-            File myObj = new File(fileName);
-            if (myObj.createNewFile()) {
-                System.out.println("File created: " + myObj.getName());
-            } else {
-                System.out.println("File already exists.");
-            }
-
-            FileWriter fileWritter = new FileWriter(fileName,true);
-            BufferedWriter bw = new BufferedWriter(fileWritter);
-            bw.write("\n"+output);
-            bw.close();
-
-            System.out.println("Successfully wrote to the file.");
-
-
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-
-    }*/
 
     public static String methode(){
 
